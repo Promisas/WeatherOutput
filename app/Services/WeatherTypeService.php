@@ -4,26 +4,24 @@ namespace App\Services;
 
 use Carbon\Carbon;
 use App\Models\Product;
-use App\Models\Attendance;
 use App\Models\WeatherType;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Database\Eloquent\Collection;
 
 class WeatherTypeService
 {
-    public function printOutput($city): array
+    public function printOutput(string $city): array
     {
         $list = [
             'City' => $this->findCity($city),
             'recommendations' => []
         ];
 
-        foreach ($this->weatherDateSearch($city) as $weatherDateList) {
+        foreach ($this->weatherDateSearch($city) as $date => $type) {
             $list['recommendations'][] = [
-                'weather_forecast' => $weatherDate = key($weatherDateList),
-                'date' => $weatherDateList[$weatherDate],
-                'products' => $this->searchProducts($weatherDate)
+                'weather_forecast' => $type,
+                'date' => $date,
+                'products' => $this->searchProducts($type)
             ];
         }
 
@@ -32,10 +30,9 @@ class WeatherTypeService
 
     public function findCity(string $city): string
     {
-        $url = Http::get('https://api.meteo.lt/v1/places/' . $city . '/forecasts/long-term')->json();
-        $city = $url['place']['name'];
+        $response = Http::get('https://api.meteo.lt/v1/places/' . $city . '/forecasts/long-term')->json();
 
-        return $city;
+        return $response['place']['name'];
     }
 
     public function weatherDateSearch(string $city): array
@@ -48,10 +45,6 @@ class WeatherTypeService
             $threeDays = Carbon::today()->addDays(3)->format('Y-m-d');
 
             if ($date >= $threeDays) {
-                $date = collect($dateCount)->map(function ($date) {
-                    return array_search(max($date), $date, true);
-                });
-
                 break;
             }
 
@@ -64,18 +57,23 @@ class WeatherTypeService
             $dateCount[$date][$timestamp['conditionCode']]++;
         }
 
-        foreach ($date as $date => $weatherType) {
-            $weatherDateList[] = [$weatherType => $date];
-        }
-
-        return $weatherDateList;
+        return $this->getDateArray($dateCount);
     }
 
-    public function searchProducts(string $weatherDate): Collection
+    public function searchProducts(string $weatherType): Collection
     {
-        $weatherType = WeatherType::where('weather_type', $weatherDate)->first();
-        return Product::where('type_id', $weatherType->id)
+        $type = WeatherType::firstWhere('weather_type', $weatherType);
+
+        return Product::where('type_id', $type->id)
             ->inRandomOrder()
-            ->limit(2)->get();
+            ->limit(2)
+            ->get();
+    }
+
+    private function getDateArray(array $dateCount): array
+    {
+        return collect($dateCount)->map(function ($date) {
+            return array_search(max($date), $date, true);
+        })->toArray();
     }
 }

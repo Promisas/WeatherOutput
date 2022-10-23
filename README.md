@@ -48,25 +48,28 @@
     -Fixing erros and misspells;
     -Adding installation instructions;
 
-## Local installation
+# Local installation
 
-# Create database
+## Create database (use if database is not created after migration)
 
     1. In cmd enter: mysql -uroot -p
     2. Enter your mysql password
-    3. CREATE DATABASE TEST; // "TEST" your database name
+    3. CREATE DATABASE TEST; // "TEST" is your database name
     4. Change .env.example to .env
-    5. In .env change DB_DATABASE=TEST // "TEST" your database name
+    5. In .env change DB_DATABASE=TEST // "TEST" is your database name
 
-# Migrations and DB seeding
+## Project setup
     
-    1. Run composer update
-    2. Run php artisan migrate
-    3. Run php artisan db:seed
-    4. Run php artisan serve
-    5. If key error run php artisan key:generate
+    Run these commands from route folder in order:
+    1. composer install
+    2. npm install
+    3. copy .env.example .env
+    4. php artisan key:generate
+    5. php artisan migrate
+    6. php artisan db:seed
+    7. php artisan serve
 
-# Cache and Route problems
+### (INFO) Cache and Route problems
 
-    1. Restart cache run php artisan cache:clear
-    2. Restart route cache run php artisan route:cache
+    1. To clear application cache: php artisan cache:clear
+    2. To clear route cache: php artisan route:cache

@@ -1,7 +1,6 @@
 <?php
 
-use App\Http\Controllers\WeatherTypeController;
-use Illuminate\Http\Request;
+use App\Http\Controllers\Api\WeatherTypeController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -16,5 +15,3 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::post('/products/recommended/{city?}', [WeatherTypeController::class, 'searchInput'])->where('city', '[A-Za-z]+')->name('city');
-
-// Route::post('/city', [WeatherTypeController::class, 'weatherDateSearch']);

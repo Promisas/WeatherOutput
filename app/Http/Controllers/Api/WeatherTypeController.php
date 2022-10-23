@@ -4,50 +4,42 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
-
+use App\Models\Log;
 use Exception;
-use App\Models\Product;
-use App\Models\WeatherType;
 use App\Services\WeatherTypeService;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
 use App\Http\Controllers\Controller;
 
 class WeatherTypeController extends Controller
 {
-    protected WeatherTypeService $service;
-
-    public function __construct(WeatherTypeService $service)
-    {
-        $this->service  = $service;
-    }
+    public function __construct(protected WeatherTypeService $service) {}
 
     public function index()
     {
         return view('index');
     }
 
-    public function searchInput(string $city = null)
+    public function searchInput(string $city = null): array
     {
         if (empty($city)) {
-            return response()->json(['error' => 'City not found'], 404);
+            return Response::json(['error' => 'City not found'], 404);
         }
 
         try {
-            if (!Cache::has('key')) {
-                $cacheOutput = $this->service->printOutput($city);
-                Cache::put('key', $cacheOutput, now()->addMinutes(5));
-
-                return $cacheOutput;
-            }
-
-            return Cache::get('key');
+            return $this->service->printOutput($city);
+//            if (!Cache::has('key')) {
+//                $cacheOutput = $this->service->printOutput($city);
+//                Cache::put('key', $cacheOutput, now()->addMinutes(5));
+//
+//                return $cacheOutput;
+//            }
+//
+//            return Cache::get('key');
         } catch (Exception $error) {
-            $message = $error->getMessage(); // store to db
+            Log::create(['message' => $error->getMessage()]);
 
-            return response()->json(['error' => 'City not found'], 404);
+            return Response::json(['error' => 'City not found'], 404);
         }
     }
 }

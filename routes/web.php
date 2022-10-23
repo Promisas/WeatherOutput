@@ -1,7 +1,6 @@
 <?php
 
-use App\Http\Controllers\WeatherTypeController;
-use App\Models\WeatherType;
+use App\Http\Controllers\Api\WeatherTypeController;
 use Illuminate\Support\Facades\Route;
 
 /*
